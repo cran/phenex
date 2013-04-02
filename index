@@ -1,0 +1,8 @@
+NDVI		Provides functions to smooth NDVI timeseries obtained from satellite observations
+phenoPhase 	Extracts phenological metrics based on modelled NDVI values
+analyzeBits 	Analyses bits of a 16-bit integer
+date2doy 	Converts a date into a Julian day
+leapYears	Checks whether the given years are leap years
+modelNDVI	Fits a suite of functions/models to raw NDVI or selected NDVI observations.
+yearlength	Returns the number of days of the given year
+rsquare 	Calculates the squared pearson correlation coefficient of corrected and modelled values
