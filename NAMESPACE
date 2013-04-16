@@ -1,0 +1,24 @@
+#import
+import(methods)
+importFrom(graphics, "plot")
+
+# C code
+useDynLib(phenex)
+
+# Export all names
+exportClasses("NDVI")
+
+exportMethods(bise,runningAvg,modelValues)
+exportMethods(phenoPhase, rsquare, plot)
+exportMethods(values, correctedValues, modelledValues)
+
+exportPattern("analyzeBits")
+exportPattern("date2doy")
+exportPattern("leapYears")
+exportPattern("modelNDVI")
+exportPattern("yearlength")
+
+
+
+
+
