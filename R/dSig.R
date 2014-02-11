@@ -1,7 +1,7 @@
 .dSig <-
 function(ndvi){
 	days <- length(ndvi)
-	ndvi <- phenex:::.linIP(ndvi)
+	ndvi <- .linIP(ndvi)
 	time <- 1:days
 
 	DSx <- function(x){

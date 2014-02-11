@@ -1,7 +1,7 @@
 .dSigC <-
 function(ndvi){
 	days <- length(ndvi)
-	ndvi <- phenex:::.linIP(ndvi)
+	ndvi <- .linIP(ndvi)
 		
 	doublesigmoid <- function(res) {
 		##########single sigmoid#######

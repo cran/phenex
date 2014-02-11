@@ -113,9 +113,13 @@
 		
 					With \dQuote{\bold{global}} threshold, the day of the year is returned, 
 					where NDVI values are first equal or higher as the value of \sQuote{threshold}. 
+					If the threshold is higher than the values of the timeseries, \sQuote{-1} will be returned.
 					
 					With \dQuote{\bold{local}} threshold, the day of the year is returned, for which NDVI values first reach the value of
-					\sQuote{threshold} (interpreted as percentage) between lowest and highest NDVI value of timeserie.
+					\sQuote{threshold} (interpreted as percentage) between lowest and highest NDVI value of timeserie. 
+					The lowest NDVI value is chosen depending on phase selected. For \dQuote{greenup}, 
+					the lowest value before day of maximum NDVI value is used. For \dQuote{senescence}, 
+					the lowest value after day of maximum NDVI value is used.
 
 					The \sQuote{threshold} for local or global greenup/senescence-extraction method
 					should have numerical value between \sQuote{0} and \sQuote{1}. Global thresholds 

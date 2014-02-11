@@ -66,9 +66,9 @@ modelNDVI <- function(ndvi.values, year.int, correction="bise",
 	foreach.avail <- suppressMessages(require(foreach, quietly=TRUE))
 	if ((foreach.avail)&&(doParallel)){
 		# check if parallel backend is available
-		if(!foreach:::getDoParRegistered()) {
+		if(!foreach::getDoParRegistered()) {
 			if (!silent){ cat("No parallel backend detected! Problem will be solved sequential.\n",sep="") }
-			foreach:::registerDoSEQ()
+			foreach::registerDoSEQ()
 		} else {
 			if (!silent){ cat("Parallel backend detected.\n",sep="") }
 		}
