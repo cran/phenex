@@ -42,13 +42,14 @@ int * getCloudmask(int * number, int *cm){
 
 int * getDayNo(int *number, int *day){
 	char * bits;
-	char cday[4];
+	char cday[4+1];
 	int dual=0, dec=0;
 	bits = getBits(number[0]);
 	cday[0]=bits[0];
 	cday[1]=bits[1];
 	cday[2]=bits[2];
 	cday[3]=bits[3];
+	cday[4]='\0';
 
 	dual = atoi(cday);
 

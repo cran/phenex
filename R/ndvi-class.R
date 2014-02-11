@@ -202,15 +202,15 @@
 		}
 		
 		if (length(which(!is.na(ndvi))) >= 5) {
-			if (tolower(method)=="linip"){ ndvi.mod <- phenex:::.linIP(ndvi) }
-			if (tolower(method)=="spline"){ ndvi.mod <- phenex:::.spline(ndvi) }
-			if (tolower(method)=="dsig"){ ndvi.mod <- phenex:::.dSig(ndvi) }
-			if (tolower(method)=="dsigc"){ ndvi.mod <-  phenex:::.dSigC(ndvi) }
-			if (tolower(method)=="dlogistic"){ ndvi.mod <- phenex:::.dLogistic(ndvi) }
-			if (tolower(method)=="gauss"){ ndvi.mod <- phenex:::.gauss(ndvi, asym) }
-			if (tolower(method)=="growth"){ ndvi.mod <- phenex:::.growth(ndvi) }
-			if (tolower(method)=="fft"){ ndvi.mod <- phenex:::.fftfilter(ndvi, filter.threshold) }
-			if (tolower(method)=="savgol"){ ndvi.mod <- phenex:::.savGol(ndvi, window.sav, degree, smoothing) }
+			if (tolower(method)=="linip"){ ndvi.mod <- .linIP(ndvi) }
+			if (tolower(method)=="spline"){ ndvi.mod <- .spline(ndvi) }
+			if (tolower(method)=="dsig"){ ndvi.mod <- .dSig(ndvi) }
+			if (tolower(method)=="dsigc"){ ndvi.mod <-  .dSigC(ndvi) }
+			if (tolower(method)=="dlogistic"){ ndvi.mod <- .dLogistic(ndvi) }
+			if (tolower(method)=="gauss"){ ndvi.mod <- .gauss(ndvi, asym) }
+			if (tolower(method)=="growth"){ ndvi.mod <- .growth(ndvi) }
+			if (tolower(method)=="fft"){ ndvi.mod <- .fftfilter(ndvi, filter.threshold) }
+			if (tolower(method)=="savgol"){ ndvi.mod <- .savGol(ndvi, window.sav, degree, smoothing) }
 		}
 		modelledValues(x) <- ndvi.mod
 		validObject(x)
@@ -242,10 +242,11 @@
 		}
 		
 		if (tolower(phase)=="max"){
-			return(which(modelledValues(x)==max(modelledValues(x), na.rm=TRUE))[1])
+			return(order(modelledValues(x), decreasing=TRUE, na.last=TRUE)[1])
 		}
 		if (tolower(phase)=="min"){
-			return(which(modelledValues(x)==min(modelledValues(x), na.rm=TRUE))[1])
+			maxDOY <- order(modelledValues(x), decreasing=TRUE, na.last=TRUE)[1]
+			return(order(modelledValues(x)[1:maxDOY], decreasing=FALSE, na.last=TRUE)[1])
 		}
 
 		if (tolower(method)!="local" & tolower(method)!="global") {
@@ -265,18 +266,27 @@
 		model <- modelledValues(x) 
 
 		if (method=="local"){
-			minmodel <- min(model, na.rm=TRUE)
+			maxDoy <- order(model, decreasing=TRUE, na.last=TRUE)[1]
+			if (tolower(phase)=="senescence"){
+				minmodel <- min(model[maxDoy:length(model)], na.rm=TRUE)
+			} else {
+				minmodel <- min(model[1:maxDoy], na.rm=TRUE)
+			}
 			maxmodel <- max(model, na.rm=TRUE)
 			threshold <- ((maxmodel - minmodel) * threshold) + minmodel
 		}
 
 		modelhalf <- model[start:which(model == max(model, na.rm=TRUE))[1]]
 		thresvec <- modelhalf-rep(threshold, length(modelhalf))
-		
-		doy <-  which(abs(thresvec) == min(abs(thresvec), na.rm=TRUE))
-		doy <- doy[order(doy, decreasing=FALSE)[1]]
+
+		if (length(which(thresvec > 0)) > 0){
+			doy <-  which(abs(thresvec) == min(abs(thresvec), na.rm=TRUE))
+			doy <- doy[order(doy, decreasing=FALSE)[1]]
 	
-		if (tolower(phase)=="senescence"){ doy <- length(modelledValues(x)) - doy }	
+			if (tolower(phase)=="senescence"){ doy <- length(modelledValues(x)) + 1 - doy}
+		} else {
+			doy <- -1
+		}
 
 		return(doy)
 	})

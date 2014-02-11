@@ -2,7 +2,7 @@
 function(ndvi, filter.threshold=3){
 	if (!is.numeric(filter.threshold)){ stop("'filter.threshold' should be of type 'numeric'") }
 	days <- length(ndvi)
-	ndvi <- phenex:::.linIP(ndvi)
+	ndvi <- .linIP(ndvi)
 
 	#Fast Fourier Transfusion
 	ndvi.fft <- fft(ndvi)

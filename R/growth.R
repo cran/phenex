@@ -1,7 +1,7 @@
 .growth <- 
 function(ndvi){
 	days <- length(ndvi)
-	ndvi <- phenex:::.linIP(ndvi)
+	ndvi <- .linIP(ndvi)
 	
 	time <- 1:days
 	Wx <- function(x){

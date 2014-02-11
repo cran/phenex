@@ -3,7 +3,7 @@ function(ndvi, asym=FALSE){
 	if (!is.logical(asym)){ stop("'asym' should be of type 'logical'") }
 	days <- length(ndvi)
 	model <- vector(mode="numeric",length=days)
-	ndvi.interpol <- phenex:::.linIP(ndvi)
+	ndvi.interpol <- .linIP(ndvi)
 
 	#parameters of gaussian function
 	maxpos <- order(ndvi, decreasing=TRUE)
