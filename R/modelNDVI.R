@@ -6,8 +6,10 @@ modelNDVI <- function(ndvi.values, year.int, correction="bise",
 	if (!is.numeric(year.int) & !is.integer(year.int)){
 		stop("'year.int' has to be of type 'numeric' or 'integer'")
 	}
-	if (tolower(correction)!="none" & tolower(correction)!="bise" & tolower(correction)!="ravg"){
-		stop("'correction' has to be 'none', 'bise' or 'ravg'")
+	if (tolower(correction)!="none" & tolower(correction)!="bise" & 
+		tolower(correction)!="bise1" & tolower(correction)!="bise2" &
+		tolower(correction)!="ravg"){
+		stop("'correction' has to be 'none', 'bise1', 'bise2' or 'ravg'")
 	}
 	if (tolower(method)!="linip" & tolower(method)!="spline" &
 		tolower(method)!="dsig" & tolower(method)!="dsigc" &
@@ -54,17 +56,26 @@ modelNDVI <- function(ndvi.values, year.int, correction="bise",
 	}
 
 	ndvi.values <- aperm(ndvi.values, c(m.days, m.it))
-	values.length <- prod(dims[m.it])	
+	values.length <- prod(dims[m.it])
+	
+	# default bise method
+	correction <- ifelse(correction=="bise", "bise2", correction)	
 
-	if (correction=="bise" & !exists("slidingperiod")){
+	arguments <- names(list(...))
+	if (is.na(match("slidingperiod",arguments))){
 		slidingperiod <- 40
-	}
-	if (correction=="ravg" & !exists("window.ravg")){
+	} else { slidingperiod <- list(...)$slidingperiod }
+	if (is.na(match("growthFactorThreshold",arguments))){
+		growthFactorThreshold <- 0.1
+	} else { growthFactorThreshold <- list(...)$growthFactorThreshold }
+	if (is.na(match("cycleValues",arguments))){
+		cycleValues <- TRUE
+	} else { cycleValues <- list(...)$cycleValues }
+	if (is.na(match("window.ravg",arguments))){
 		window.ravg <- 7
-	}
+	} else { window.ravg <- list(...)$window.ravg }
 
-	foreach.avail <- suppressMessages(require(foreach, quietly=TRUE))
-	if ((foreach.avail)&&(doParallel)){
+	if (doParallel){
 		# check if parallel backend is available
 		if(!foreach::getDoParRegistered()) {
 			if (!silent){ cat("No parallel backend detected! Problem will be solved sequential.\n",sep="") }
@@ -78,8 +89,10 @@ modelNDVI <- function(ndvi.values, year.int, correction="bise",
 			ndvi.vec <- ndvi.values[position]
 			ndvi.vec[which(ndvi.vec > 1 | ndvi.vec < -1)] <- NA
 			ndvi <- new("NDVI", year=as.integer(year.int), values=ndvi.vec)
-			
-			if (correction=="bise"){ ndvi <- bise(ndvi, slidingperiod) }
+				
+			if (correction=="bise1"){ ndvi <- bise1(ndvi, slidingperiod) }
+			if (correction=="bise2"){ ndvi <- bise2(ndvi, slidingperiod, 
+							growthFactorThreshold, cycleValues) }
 			if (correction=="ravg"){ ndvi <- runningAvg(ndvi, window.ravg) }
 
 			if (method != "none"){ ndvi <- modelValues(ndvi, method=method, ...) }
@@ -93,7 +106,9 @@ modelNDVI <- function(ndvi.values, year.int, correction="bise",
 			ndvi.vec[which(ndvi.vec > 1 | ndvi.vec < -1)] <- NA
 			ndvi <- new("NDVI", year=as.integer(year.int), values=ndvi.vec)
 			
-			if (correction=="bise"){ ndvi <- bise(ndvi, slidingperiod) }
+			if (correction=="bise1"){ ndvi <- bise1(ndvi, slidingperiod) }
+			if (correction=="bise2"){ ndvi <- bise2(ndvi, slidingperiod, 
+							growthFactorThreshold, cycleValues) }
 			if (correction=="ravg"){ ndvi <- runningAvg(ndvi, window.ravg) }
 
 			if (method != "none"){ ndvi <- modelValues(ndvi, method=method, ...) }

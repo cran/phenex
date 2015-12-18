@@ -16,11 +16,24 @@
 			\dQuote{\bold{ravg}}: Smoothing with running average. Default window size is 7 
 				and can be modified by parameter \sQuote{window.ravg}. See also \code{\link{runningAvg}}.
 
-			\dQuote{\bold{bise}}: Best index slope extraction after \emph{Viovy et. al} (1992).
+			\dQuote{\bold{bise1}}: Best index slope extraction after \emph{Viovy et. al} (1992).
 			Can be modified with parameter \sQuote{slidingperiod}. Default to 40, optimised for 
 			the area of Central Europe. This might has to be modified 
 			when vegetation dynamics of other climates/habitats are analysed. 
-			See also \code{\link{bise}}.
+			See also \code{\link{bise1}} and \code{\link{bise2}}.
+
+			\dQuote{\bold{bise2}}: Best index slope extraction after \emph{Viovy et. al} (1992).
+			Second interpretation of bise algorithm.
+			Can be modified with parameter \sQuote{slidingperiod}. Default to 40, optimised for 
+			the area of Central Europe. This might has to be modified 
+			when vegetation dynamics of other climates/habitats are analysed. 
+			An maximum increase threshold is defined via parameter \sQuote{growthFactorThreshold} with 
+			default to 0.1 (10 percent increase per day allowed).
+			The timeserie is cycled via parameter \sQuote{cycleValues}, which is a 
+			boolean value determining whether the end of the ndvi timeserie 
+			is combined with its beginning or not (default value is true). If false, gaps or low ndvi 
+			values at the beginning of timeserie influence the result.
+			See also \code{\link{bise1}} and \code{\link{bise2}}.
 			}
   \item{method}{Determines which model will be fitted to the corrected NDVI-timeserie (if the 
 				corrected timeserie is not available, the raw one out of \sQuote{values} will be used). 

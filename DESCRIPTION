@@ -1,17 +1,17 @@
 Package: phenex
 Type: Package
-Title: Auxiliary functions for phenological data analysis
-Version: 1.0-7
-Date: 2014-02-11
+Title: Auxiliary Functions for Phenological Data Analysis
+Version: 1.1-9
+Date: 2015-12-17
 Author: Lange, Maximilian and Doktor, Daniel
 Maintainer: Daniel Doktor <daniel.doktor@ufz.de>
 Description: Provides some easy-to-use functions for 
 	spatial analyses of (plant-) phenological data 
 	sets and satellite observations of vegetation.
-Depends: R (>= 3.0), methods
-Suggests: foreach
+Depends: R (>= 3.0)
+Imports: methods, foreach
 License: GPL (>= 2)
-Packaged: 2014-02-11 12:22:35 UTC; langema
 NeedsCompilation: yes
+Packaged: 2015-12-17 12:50:47 UTC; langema
 Repository: CRAN
-Date/Publication: 2014-02-11 15:29:04
+Date/Publication: 2015-12-18 14:07:21

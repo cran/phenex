@@ -22,7 +22,7 @@ function(ndvi){
 	q <- 320
 
 	optimal <- optim(c(vb,ve,k,p,d,c,q),fn=Wx,gr=NULL,method="L-BFGS-B",
-			lower=c(0.001,0.001,0.001,1,0.001,0.001,1), upper=c(0.3,0.3,1,100,0.5,0.5,340),
+			lower=c(0.001,0.001,0.001,1,0.001,0.001,1), upper=c(0.3,0.3,1,300,0.5,0.5,340),
 			control=list(maxit = 5000, pgtol = 1e-10, 
 			ndeps = c(1e-10, 1e-10, 1e-10, 1, 1e-10, 1e-10,1), 
 			lmm = 200))	

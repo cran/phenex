@@ -6,3 +6,4 @@ leapYears	Checks whether the given years are leap years
 modelNDVI	Fits a suite of functions/models to raw NDVI or selected NDVI observations.
 yearlength	Returns the number of days of the given year
 rsquare 	Calculates the squared pearson correlation coefficient of corrected and modelled values
+integrateTimeserie 	Integrates the timeserie between start and end date.

@@ -3,6 +3,8 @@
 \docType{class}
 \alias{NDVI-class}
 \alias{bise,NDVI-method}
+\alias{bise1,NDVI-method}
+\alias{bise2,NDVI-method}
 \alias{checkLength,NDVI-method}
 \alias{correctedValues<-,NDVI-method}
 \alias{correctedValues,NDVI-method}
@@ -19,6 +21,7 @@
 \alias{year<-,NDVI-method}
 \alias{year,NDVI-method}
 \alias{rsquare,NDVI-method}
+\alias{integrateTimeserie,NDVI-method}
 
 \title{Class \code{"NDVI"}}
 \description{
@@ -44,15 +47,31 @@
 }
 \section{Methods}{
   \describe{
-    \item{bise}{\code{signature(x = "NDVI")}: Best index slope extraction after \emph{Viovy et. al} (1992). 
-			See also \code{\link{bise}}.
+    \item{bise1}{\code{signature(x = "NDVI")}: Best index slope extraction after \emph{Viovy et. al} (1992). 
+			See also \code{\link{bise1}} and \code{\link{bise2}}.
 
 		This routine tries to restore the temporal NDVI profile, 
 		i.e. separate true observations from noise. The sliding period default of BISE-algorithm 
 		is 40 days, optimised for the area of Central Europe. This might has to be modified 
 		when vegetation dynamics of other climates/habitats are analysed.
 
-		This method is used by function \code{\link{modelNDVI}} if parameter correction is set to \dQuote{bise}.}
+		This method is used by function \code{\link{modelNDVI}} if parameter correction is set to \dQuote{bise1}.}
+    \item{bise2}{\code{signature(x = "NDVI")}: Best index slope extraction after \emph{Viovy et. al} (1992). 
+			Second interpretation of algorithm. See also \code{\link{bise1}} and \code{\link{bise2}}.
+
+		This routine tries to restore the temporal NDVI profile, 
+		i.e. separate true observations from noise. The sliding period default of BISE-algorithm 
+		is 40 days, optimised for the area of Central Europe. This might has to be modified 
+		when vegetation dynamics of other climates/habitats are analysed.
+		An maximum increase threshold is defined via parameter \sQuote{growthFactorThreshold} with 
+		default to 0.1 (10 percent increase per day allowed).
+		The timeserie is cycled via parameter \sQuote{cycleValues}, which is a 
+		boolean value determining whether the end of the ndvi timeserie 
+		is combined with its beginning or not (default value is true). If false, gaps or low ndvi 
+		values at the beginning of timeserie influence the result.
+
+		This method is used by function \code{\link{modelNDVI}} if parameter correction is set to \dQuote{bise2}.}
+    \item{bise}{\code{signature(x = "NDVI")}: Calls method \code{\link{bise2}}.}
     \item{checkLength}{\code{signature(x = "NDVI")}: Checks the length of the timeserie respective 
 			to the length of the year (365 days or 366 for leap years).}
     \item{correctedValues<-}{\code{signature(x = "NDVI")}: Replacement method for slot \code{correctedValues}.}
@@ -142,6 +161,7 @@
     \item{rsquare}{\code{signature(x = "NDVI")}: Calculates the squared Pearson correlation coefficient out of 
 				corrected (if the corrected timeserie is not available, the raw one out of 
 				\sQuote{values} will be used) and modelled timeserie. }
+    \item{integrateTimeserie}{\code{signature(x = "NDVI")}: Calculates the integral of the timeserie between the bounds \sQuote{start} and \sQuote{end}.}
     }
 }
 
@@ -215,7 +235,14 @@ Zhang, X.Y., Friedl, M.A., Schaaf, C.B., Strahler, A.H., Hodges, J.C.F., Gao, F.
 	for (ndvi.ob in ndvi.list2){ plot(ndvi.ob) }
 	
 	# extract greenup date
-	greenup <- phenoPhase(ndvi.list1[[1]], phase="greenup", method="local", threshold=0.55)
+	greenup <- phenoPhase(ndvi.list1[[1]], phase="greenup", 
+			method="local", threshold=0.55)
+	# extract senescence date
+	senescence <- phenoPhase(ndvi.list1[[1]], phase="senescence", 
+			method="local", threshold=0.55)
 	# extract date with highest NDVI
 	max.ndvi <- phenoPhase(ndvi.list1[[1]], phase="max")
+
+	# calculate green season integrated vegetation index
+	gsivi <- integrateTimeserie(ndvi.list1[[1]], start=greenup, end=senescence)
 }

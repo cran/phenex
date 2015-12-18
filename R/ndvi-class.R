@@ -9,7 +9,7 @@
 		prototype(year=NA, values=rep(NA, 365), correctedValues=NULL, modelledValues=NULL))
 
 	setGeneric("year", function(x) standardGeneric("year"))
-	setMethod("year", "NDVI", function(x) x@year)
+	setMethod("year", "NDVI", function(x) x@year)	
 
 	setGeneric("values", function(x) standardGeneric("values"))
 	setMethod("values", "NDVI", function(x) x@values)
@@ -67,8 +67,8 @@
 	setGeneric("modelledValues<-", function(x, value) standardGeneric("modelledValues<-"))
 	setReplaceMethod("modelledValues", "NDVI", function(x, value) {x@modelledValues <- value; validObject(x); x})
 
-	setGeneric("bise", function(x, slidingperiod) standardGeneric("bise"))
-	setMethod("bise", "NDVI", function(x, slidingperiod) {
+	setGeneric("bise1", function(x, slidingperiod) standardGeneric("bise1"))
+	setMethod("bise1", "NDVI", function(x, slidingperiod) {
 		if (is.na(year(x))){ stop("'year' has to be set") }
 		if (missing("slidingperiod")){ slidingperiod <- 40 }
 		days <- ifelse(isLeapYear(x), 366, 365)
@@ -128,6 +128,102 @@
 		return(x)
 	})
 
+	setGeneric("bise2", function(x, slidingperiod, growthFactorThreshold, cycleValues) standardGeneric("bise2"))
+	setMethod("bise2", "NDVI", function(x, slidingperiod, growthFactorThreshold, cycleValues) {
+		if (is.na(year(x))){ stop("'year' has to be set") }
+		if (missing("slidingperiod")){ slidingperiod <- 40 }
+		if (missing("growthFactorThreshold")){ growthFactorThreshold <- 0.1 }
+		if (missing("cycleValues")){ cycleValues <- TRUE }
+		daysofyear <- ifelse(isLeapYear(x), 366, 365)
+
+		ndvi <- values(x)
+		ndvi[which(ndvi <= 0)] <- NA
+
+		if (cycleValues){ 
+			days <- 3*daysofyear
+			ndvi <- c(ndvi,ndvi,ndvi)
+		} else {
+			days <- daysofyear
+		}
+		
+		corrected <- rep(NA,length=days)
+		pos <- 1
+		lastValidPos <- 0
+		while (pos <= days){
+			if (is.na(ndvi[pos])){
+				pos <- pos+1
+				next
+			}
+
+			if (lastValidPos==0){
+				if ((ndvi[pos] > mean(ndvi, na.rm=TRUE)/5) && 
+					(ndvi[pos] <= mean(ndvi, na.rm=TRUE))){
+					corrected[pos] <- ndvi[pos]
+					lastValidPos <- pos
+				}
+				pos <- pos+1
+				next
+			}
+
+			validIncrease <- (1+(growthFactorThreshold*(pos-lastValidPos)))*
+						corrected[lastValidPos]
+
+			validIncrease <- ifelse(validIncrease > 1, 1, validIncrease)
+
+			if (ndvi[pos] >= corrected[lastValidPos]) {
+				if ((ndvi[pos] <= validIncrease)) {
+					corrected[pos] <- ndvi[pos]
+					lastValidPos <- pos
+				}
+				pos <- pos+1
+			} else if (ndvi[pos] < corrected[lastValidPos]) {
+
+				endOfPeriod <- pos+slidingperiod
+				endOfPeriod <- ifelse(endOfPeriod>days,days,endOfPeriod)
+				period <- pos:endOfPeriod
+				nextValues <- ndvi[period]
+
+				cloudValues <- nextValues-corrected[lastValidPos]
+				cloudHop <- which(cloudValues>0)
+				if (length(cloudHop)>0){
+					pos <- period[cloudHop[1]]
+					next
+				}
+
+				slopeThreshold <- ndvi[pos]+0.2*(corrected[lastValidPos]-ndvi[pos])
+				values <- nextValues-slopeThreshold
+				possibleValues <- which(values>0)
+				if (length(possibleValues)>0){
+					pos <- period[possibleValues[1]]
+				} else {
+					corrected[pos] <- ndvi[pos]
+					lastValidPos <- pos
+					pos <- pos+1
+				}
+			}
+		}
+
+		if (cycleValues){
+			corrected <- corrected[(daysofyear+1):(2*daysofyear)]
+		}
+
+		correctedValues(x) <- corrected
+		validObject(x)
+		return(x)
+	})
+
+	setGeneric("bise", function(x, slidingperiod, growthFactorThreshold) standardGeneric("bise"))
+	setMethod("bise", "NDVI", function(x, slidingperiod, growthFactorThreshold) {
+		if (is.na(year(x))){ stop("'year' has to be set") }
+		if (missing("slidingperiod")){ slidingperiod <- 40 }
+		if (missing("growthFactorThreshold")){ growthFactorThreshold <- 0.1 }
+
+		x <- bise2(x, slidingperiod, growthFactorThreshold)
+
+		validObject(x)
+		return(x)
+	})
+
 	setGeneric("runningAvg", function(x, window) standardGeneric("runningAvg"))
 	setMethod("runningAvg", "NDVI", function(x, window) {
 		if (is.na(year(x))){ stop("'year' has to be set") }
@@ -179,17 +275,27 @@
 				'DLogistic', 'Gauss', 'Growth', 
 				'FFT' or 'SavGol'")
 		}
-
+		arguments <- names(list(...))
 		if (tolower(method)=="gauss"){
-			if (!exists("asym")){ asym <- FALSE }
+			if (is.na(match("asym",arguments))){
+				asym <- FALSE
+			} else { asym <- list(...)$asym }
 		}
 		if (tolower(method)=="fft"){
-			if (!exists("filter.threshold")){ filter.threshold <- 3 }
+			if (is.na(match("filter.threshold",arguments))){
+				filter.threshold <- 3
+			} else { filter.threshold <- list(...)$filter.threshold }
 		}
 		if (tolower(method)=="savgol"){
-			if (!exists("window.sav")){ window.sav <- 7 }
-			if (!exists("degree")){ degree <- 2 }
-			if (!exists("smoothing")){ smoothing <- 10 }
+			if (is.na(match("window.sav",arguments))){
+				window.sav <- 7
+			} else { window.sav <- list(...)$window.sav }
+			if (is.na(match("degree",arguments))){
+				degree <- 2
+			} else { degree <- list(...)$degree }
+			if (is.na(match("smoothing",arguments))){
+				smoothing <- 10
+			} else { smoothing <- list(...)$smoothing }
 		}
 
 		if (is.na(year(x))){ stop("'year' has to be set") }
@@ -219,7 +325,7 @@
 
 	if (!isGeneric("plot"))
       		setGeneric("plot", function(x,y,...) standardGeneric("plot"))
-	setMethod("plot", "NDVI", function(x,y=NULL,...) {
+		setMethod("plot", "NDVI", function(x,y=NULL,...) {
 		plot(1:ifelse(isLeapYear(x),366,365), values(x), type="p",
 			xlim=c(0,365), ylim=c(0,1), xlab="Day of the Year",
 			ylab="NDVI", col="black", ...)
@@ -280,12 +386,12 @@
 		thresvec <- modelhalf-rep(threshold, length(modelhalf))
 
 		if (length(which(thresvec > 0)) > 0){
-			doy <-  which(abs(thresvec) == min(abs(thresvec), na.rm=TRUE))
+			doy <- which(thresvec > 0)[na.omit(match(which(thresvec <= 0)+1, which(thresvec > 0)))]
 			doy <- doy[order(doy, decreasing=FALSE)[1]]
 	
 			if (tolower(phase)=="senescence"){ doy <- length(modelledValues(x)) + 1 - doy}
 		} else {
-			doy <- -1
+			doy <- NA
 		}
 
 		return(doy)
@@ -295,7 +401,7 @@
 	setGeneric("rsquare", function(x) standardGeneric("rsquare"))
 	setMethod("rsquare", "NDVI", function(x) {
 		if (is.null(modelledValues(x))){ return(NA) }
-		if(is.null(correctedValues(x))){
+		if(is.null(correctedValues(x)) | length(correctedValues(x)) < 2){
 			ndvi <- values(x)
 		} else {
 			ndvi <- correctedValues(x)
@@ -313,5 +419,32 @@
 			r2 <- NA
 		}
 		return(r2)
+	})
+
+	setGeneric("integrateTimeserie", function(x, start, end) standardGeneric("integrateTimeserie"))
+	setMethod("integrateTimeserie", "NDVI", function(x, start, end){
+		errorreturn <- list(value=NA, abs.error=NA, subdivisions=NA, message=NA, call=NA)
+		if(is.null(modelledValues(x))){ return(errorreturn) }
+		if (is.na(start) | is.na(end)){ return(errorreturn) }
+		model <- modelledValues(x)
+		if(length(which(!is.na(model)))<2){ return(errorreturn) }
+		modelfunc <- approxfun(x=(-length(model)+1):(2*length(model)), y=c(model,model,model))
+		count <- 1
+		repeat {
+			subdiv <- 100
+			res <- try(integrate(f=modelfunc, lower=start, 
+					upper=end, subdivisions=subdiv), 
+				silent=TRUE)
+			if (!inherits(res, "try-error")){
+				return(res)
+			} else {
+				subdiv <- subdiv*2
+				count <- count+1
+				if (count >= 20){
+					break;
+				}
+			}
+		}
+		return(errorreturn)
 	})
 }

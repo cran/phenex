@@ -1,15 +1,17 @@
 #import
 import(methods)
-importFrom(graphics, "plot")
-
+import(foreach)
+importFrom(graphics, "plot", "lines", "points")
+importFrom("stats", "approxfun", "cor", "fft", "integrate", "na.omit",
+             "nls", "optim", "predict", "splinefun", "var")
 # C code
 useDynLib(phenex)
 
 # Export all names
 exportClasses("NDVI")
 
-exportMethods(bise,runningAvg,modelValues)
-exportMethods(phenoPhase, rsquare, plot)
+exportMethods(bise,bise1,bise2,runningAvg,modelValues)
+exportMethods(phenoPhase, rsquare, plot, integrateTimeserie)
 exportMethods(values, correctedValues, modelledValues)
 
 exportPattern("analyzeBits")

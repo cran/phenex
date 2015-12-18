@@ -2,7 +2,7 @@
 #include<R.h>
 #include "analyzeBits.h"
 
-char * getBits(short number){
+char * readBits(short number){
 	static char out[16];
 	int i=0;
 
@@ -20,12 +20,21 @@ char * getBits(short number){
 	return out;
 }
 
+int * getBits(int * number, int * pos, int * m){
+	char * bits;
+	char c;
+	int erg;
+	bits = readBits(number[0]);
+	c = bits[pos[0]];	
+	*m = atoi(&c);
+	return m;
+}
 
 int * getLandWater(int * number, int * lw){
 	char * bits;
 	char c;
 	int erg;
-	bits = getBits(number[0]);
+	bits = readBits(number[0]);
 	c = bits[15];	
 	*lw = atoi(&c);
 	return lw;
@@ -34,7 +43,7 @@ int * getLandWater(int * number, int * lw){
 int * getCloudmask(int * number, int *cm){
 	char * bits;
 	char c;
-	bits = getBits(number[0]);
+	bits = readBits(number[0]);
 	c = bits[14];
 	*cm = atoi(&c);
 	return cm;
@@ -44,7 +53,7 @@ int * getDayNo(int *number, int *day){
 	char * bits;
 	char cday[4+1];
 	int dual=0, dec=0;
-	bits = getBits(number[0]);
+	bits = readBits(number[0]);
 	cday[0]=bits[0];
 	cday[1]=bits[1];
 	cday[2]=bits[2];
