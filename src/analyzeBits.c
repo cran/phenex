@@ -73,3 +73,4 @@ int * getDayNo(int *number, int *day){
 
 	return day;
 }
+

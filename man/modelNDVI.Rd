@@ -3,11 +3,13 @@
 
 \title{Main function for NDVI correction and modelling}
 \description{Fits a suite of functions/models to raw NDVI or selected NDVI observations (after BISE).}
-\usage{modelNDVI(ndvi.values, year.int, correction="bise", 
+\usage{modelNDVI(ndvi.values, year.int, multipleSeasons=FALSE, correction="bise", 
 	method="LinIP", MARGIN=2, doParallel=FALSE, silent=TRUE, ...)}
 \arguments{
   \item{ndvi.values}{A vector or matrix containing NDVI observations with values in the interval (-1,1).}
   \item{year.int}{Observation year}
+  \item{multipleSeasons}{Determines wether a season detection should be performed or not. 
+			Setting \sQuote{multipleSeasons} to TRUE forces following algorithms modelling NDVI and extracting 				phenological phases to be performed once per detected season.}
   \item{correction}{A character string determining which method will be used for correction of NDVI values. 
 			Should be either:
 
@@ -16,13 +18,8 @@
 			\dQuote{\bold{ravg}}: Smoothing with running average. Default window size is 7 
 				and can be modified by parameter \sQuote{window.ravg}. See also \code{\link{runningAvg}}.
 
-			\dQuote{\bold{bise1}}: Best index slope extraction after \emph{Viovy et. al} (1992).
-			Can be modified with parameter \sQuote{slidingperiod}. Default to 40, optimised for 
-			the area of Central Europe. This might has to be modified 
-			when vegetation dynamics of other climates/habitats are analysed. 
-			See also \code{\link{bise1}} and \code{\link{bise2}}.
 
-			\dQuote{\bold{bise2}}: Best index slope extraction after \emph{Viovy et. al} (1992).
+			\dQuote{\bold{bise}}: Best index slope extraction after \emph{Viovy et. al} (1992).
 			Second interpretation of bise algorithm.
 			Can be modified with parameter \sQuote{slidingperiod}. Default to 40, optimised for 
 			the area of Central Europe. This might has to be modified 
@@ -33,7 +30,6 @@
 			boolean value determining whether the end of the ndvi timeserie 
 			is combined with its beginning or not (default value is true). If false, gaps or low ndvi 
 			values at the beginning of timeserie influence the result.
-			See also \code{\link{bise1}} and \code{\link{bise2}}.
 			}
   \item{method}{Determines which model will be fitted to the corrected NDVI-timeserie (if the 
 				corrected timeserie is not available, the raw one out of \sQuote{values} will be used). 
@@ -53,6 +49,10 @@
 
 				\dQuote{\bold{Gauss}}: Fits a symmetric or asymmetric (determined by boolean parameter \sQuote{asym}) gaussian 
 					function to NDVI values (own C implementation after \emph{Press, W.H.} (1992)).
+
+				\dQuote{\bold{GaussMix}}: Fits a mixture of gaussian functions to NDVI values (own C implementation after \emph{Press, W.H.} (1992)).
+						The number of components is determined by parameter \sQuote{components}. If multiple components are given, 
+						the algorithm checks which number performs best.
 
 				\dQuote{\bold{Growth}}: Fits a plant growth model after \emph{Richter et. al} (1991) to NDVI values.
 
@@ -98,18 +98,18 @@ Viovy, N., Arino, O. and Belward, A.S. (1992). The Best Index Slope Extraction (
 
 Zhang, X.Y., Friedl, M.A., Schaaf, C.B., Strahler, A.H., Hodges, J.C.F., Gao, F., Reed, B.C. and Huete, A. (2003). Monitoring vegetation phenology using MODIS. \emph{Remote Sensing of Environment}, \bold{84}, 471-475.
 }
-\seealso{\code{\link{bise}}, \code{\link{runningAvg}}, \code{\linkS4class{NDVI}}, \code{\link{phenoPhase}}}
+\seealso{\code{\link{bise}}, \code{\link{runningAvg}},\code{\link{detectSeasons}}, \code{\linkS4class{NDVI}}, \code{\link{phenoPhase}}}
 \examples{
 data(avhrr)
 data(modis)
 
 # create NDVI object, correct and model values
 ndvi.list1 <- modelNDVI(ndvi.values=cbind(avhrr.ndvi/10000, modis.ndvi/10000), 
-			year.int=1995, correction="bise", method="LinIP", MARGIN=2, 
-			doParallel=FALSE, slidingperiod=40)
+			year.int=1995, multipleSeasons=FALSE, correction="bise", 
+			method="LinIP", MARGIN=2, doParallel=FALSE, slidingperiod=40)
 ndvi.list2 <- modelNDVI(ndvi.values=cbind(avhrr.ndvi/10000, modis.ndvi/10000), 
-			year.int=1995, correction="ravg", method="FFT", MARGIN=2, 
-			doParallel=FALSE, filter.threshold=7)
+			year.int=1995, multipleSeasons=FALSE, correction="ravg", 
+			method="FFT", MARGIN=2, doParallel=FALSE, filter.threshold=7)
 
 # plot Values
 for (ndvi.ob in ndvi.list1){ plot(ndvi.ob) } 

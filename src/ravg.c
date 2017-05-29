@@ -98,3 +98,4 @@ double *runAVG(int *rdays, double *ndvi, int *rwindow, double *corrected_ndvi){
 
 	return corrected_ndvi;
 }
+

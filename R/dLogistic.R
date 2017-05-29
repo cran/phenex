@@ -1,60 +1,34 @@
 .dLogistic <- 
 function(ndvi){
 	days <- length(ndvi)
-	ndvi <- .linIP(ndvi)
-	time <- 1:days
+	
+	time <- which(!is.na(ndvi))	
+	ndvi <- ndvi[time]
 
-	Wx <- function(x){
-		erg <- sum(((x[1] + (x[3]/(1+exp(-x[6]*(time-x[4])))) - 
-			((x[3]+x[1]-x[2])/(1+exp(-x[5]*(time-x[7]))))) - (ndvi))^2)
-		return(ifelse((is.infinite(erg)||is.nan(erg)),1e50,erg))
-	}
-
-	Wt <- function(vb,ve,k,p,d,c,q) {
+	Wt <- function(vb,ve,k,p,d,c,q, time) {
    		erg <- vb + (k/(1+exp(-c*(time-p)))) - ((k+vb-ve)/(1+exp(-d*(time-q))))
 		return(erg)
   	}
-	
-	vb <- ve <- 0.1
-    	c <- d <- 0.1
-    	k <- 0.6
-    	p <- 90
-	q <- 320
 
-	optimal <- optim(c(vb,ve,k,p,d,c,q),fn=Wx,gr=NULL,method="L-BFGS-B",
-			lower=c(0.001,0.001,0.001,1,0.001,0.001,1), upper=c(0.3,0.3,1,300,0.5,0.5,340),
-			control=list(maxit = 5000, pgtol = 1e-10, 
-			ndeps = c(1e-10, 1e-10, 1e-10, 1, 1e-10, 1e-10,1), 
-			lmm = 200))	
-
-	vb <- optimal$par[1]
-	ve <- optimal$par[2]
-  	k <- optimal$par[3]
-	p <- optimal$par[4]
-  	d <- optimal$par[5]
-	c <- optimal$par[6]
-  	q <- optimal$par[7]
-
-	model.optim <- Wt(vb,ve,k,p,d,c,q)
-
-	count <- 10
-	tolerance <- 1e-5
-	repeat {
-		model <- try(nls(ndvi ~ Wt(vb,ve,k,p,d,c,q),
-                		start=list(vb=vb,ve=ve,k=k,p=p,d=d,c=c,q=q), 
-				control=list(maxiter=200,tol=tolerance,
-				minFactor=1/4096)), silent=TRUE)
-		if (inherits(model, "try-error")==FALSE){
-			model.interpol <- predict(model)
-			break
-		} else {
-			count <- count - 1
-			if (count==0){
-				return(rep(NA, days))
-			}
-			tolerance <- tolerance*10
-		}
+	Wx <- function(x, time, ndvi){
+		erg <- sum((Wt(vb=x[1], ve=x[2], k=x[3], p=x[4], d=x[5], c=x[6], q=x[7], time)-ndvi)^2)
+		return(ifelse((is.infinite(erg)||is.nan(erg)),1e50,erg))
 	}
+
+	
+	model <- DEoptim(fn=Wx, time=time, ndvi=ndvi,
+		lower=c(0,0,0,1,0,0,1),
+		upper=c(1,1,1,days,1,1,days),
+		control=list(VTR=0, strategy=1, NP=200, itermax = 200, trace=FALSE, CR=0.9))
+
+	vb <- model$optim$bestmem[1]
+	ve <- model$optim$bestmem[2]
+	k <- model$optim$bestmem[3]
+	p <- model$optim$bestmem[4]
+	d <- model$optim$bestmem[5]
+	c <- model$optim$bestmem[6]
+	q <- model$optim$bestmem[7]
+	model.interpol <- Wt(vb,ve,k,p,d,c,q, time=1:days) 
 
 	return(model.interpol)
 }

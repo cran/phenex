@@ -3,12 +3,12 @@
 \docType{class}
 \alias{NDVI-class}
 \alias{bise,NDVI-method}
-\alias{bise1,NDVI-method}
-\alias{bise2,NDVI-method}
 \alias{checkLength,NDVI-method}
 \alias{correctedValues<-,NDVI-method}
 \alias{correctedValues,NDVI-method}
 \alias{isLeapYear,NDVI-method}
+\alias{seasons<-,NDVI-method}
+\alias{seasons,NDVI-method}
 \alias{modelledValues<-,NDVI-method}
 \alias{modelledValues,NDVI-method}
 \alias{modelValues,NDVI-method}
@@ -38,7 +38,8 @@
 
 \section{Slots}{
   \describe{
-    \item{\code{year}:}{The year of the timeserie as integer value or \sQuote{NA}.}
+    \item{\code{year}:}{The year of the timeseries as integer value or \sQuote{NA}.}
+    \item{\code{seasons}:}{Season start positions of the timeseries.}
     \item{\code{values}:}{A vector of NDVI-values (between minus one and one as numeric) of length 365 or 
 	366 (respective to length of the year).}
     \item{\code{correctedValues}:}{A vector of corrected NDVI-values. Is set after use of correction methods \sQuote{bise} or \sQuote{runningAvg}.}
@@ -47,17 +48,8 @@
 }
 \section{Methods}{
   \describe{
-    \item{bise1}{\code{signature(x = "NDVI")}: Best index slope extraction after \emph{Viovy et. al} (1992). 
-			See also \code{\link{bise1}} and \code{\link{bise2}}.
-
-		This routine tries to restore the temporal NDVI profile, 
-		i.e. separate true observations from noise. The sliding period default of BISE-algorithm 
-		is 40 days, optimised for the area of Central Europe. This might has to be modified 
-		when vegetation dynamics of other climates/habitats are analysed.
-
-		This method is used by function \code{\link{modelNDVI}} if parameter correction is set to \dQuote{bise1}.}
-    \item{bise2}{\code{signature(x = "NDVI")}: Best index slope extraction after \emph{Viovy et. al} (1992). 
-			Second interpretation of algorithm. See also \code{\link{bise1}} and \code{\link{bise2}}.
+    \item{bise}{\code{signature(x = "NDVI")}: Best index slope extraction after \emph{Viovy et. al} (1992). 
+			Second interpretation of algorithm.
 
 		This routine tries to restore the temporal NDVI profile, 
 		i.e. separate true observations from noise. The sliding period default of BISE-algorithm 
@@ -70,13 +62,14 @@
 		is combined with its beginning or not (default value is true). If false, gaps or low ndvi 
 		values at the beginning of timeserie influence the result.
 
-		This method is used by function \code{\link{modelNDVI}} if parameter correction is set to \dQuote{bise2}.}
-    \item{bise}{\code{signature(x = "NDVI")}: Calls method \code{\link{bise2}}.}
+		This method is used by function \code{\link{modelNDVI}} if parameter correction is set to \dQuote{bise}.}
     \item{checkLength}{\code{signature(x = "NDVI")}: Checks the length of the timeserie respective 
 			to the length of the year (365 days or 366 for leap years).}
     \item{correctedValues<-}{\code{signature(x = "NDVI")}: Replacement method for slot \code{correctedValues}.}
     \item{correctedValues}{\code{signature(x = "NDVI")}: Acessor method for slot \code{correctedValues}. }
     \item{isLeapYear}{\code{signature(x = "NDVI")}: Checks whether the year of the NDVI-object is a leap year.}
+    \item{seasons<-}{\code{signature(x = "NDVI")}: Replacement method for slot \code{seasons}. }
+    \item{seasons}{\code{signature(x = "NDVI")}: Acessor method for slot \code{seasons}. }
     \item{modelledValues<-}{\code{signature(x = "NDVI")}: Replacement method for slot \code{modelledValues}. }
     \item{modelledValues}{\code{signature(x = "NDVI")}: Acessor method for slot \code{modelledValues}. }
     \item{modelValues}{\code{signature(x = "NDVI")}: Fits a suite of functions/models to corrected NDVI-timeserie (if the 
@@ -98,6 +91,10 @@
 
 				\dQuote{\bold{Gauss}}: Fits a symmetric or asymmetric (determined by boolean parameter \sQuote{asym}) gaussian 
 					function to NDVI values (own C implementation after \emph{Press, W.H.} (1992)).
+
+				\dQuote{\bold{GaussMix}}: Fits a mixture of gaussian functions to NDVI values (own C implementation after \emph{Press, W.H.} (1992)).
+						The number of components is determined by parameter \sQuote{components}. If multiple components are given, 
+							the algorithm checks which number performs best.
 
 				\dQuote{\bold{Growth}}: Fits a growth model after \emph{Richter et. al} (1991) to NDVI values.
 
@@ -214,9 +211,9 @@ Zhang, X.Y., Friedl, M.A., Schaaf, C.B., Strahler, A.H., Hodges, J.C.F., Gao, F.
 	plot(res4)
 
 	# extract greenup date
-	greenup <- phenoPhase(res1, phase="greenup", method="local", threshold=0.55)
+	greenup <- phenoPhase(res1, phase="greenup", method="local", threshold=0.55, n=1000)
 	# extract date with highest ndvi
-	max.ndvi <- phenoPhase(res1, phase="max")
+	max.ndvi <- phenoPhase(res1, phase="max", n=1000)
 
 	## or simpler
 	data(avhrr)
@@ -236,13 +233,13 @@ Zhang, X.Y., Friedl, M.A., Schaaf, C.B., Strahler, A.H., Hodges, J.C.F., Gao, F.
 	
 	# extract greenup date
 	greenup <- phenoPhase(ndvi.list1[[1]], phase="greenup", 
-			method="local", threshold=0.55)
+			method="local", threshold=0.55, n=1000)
 	# extract senescence date
 	senescence <- phenoPhase(ndvi.list1[[1]], phase="senescence", 
-			method="local", threshold=0.55)
+			method="local", threshold=0.55, n=1000)
 	# extract date with highest NDVI
-	max.ndvi <- phenoPhase(ndvi.list1[[1]], phase="max")
+	max.ndvi <- phenoPhase(ndvi.list1[[1]], phase="max", n=1000)
 
 	# calculate green season integrated vegetation index
-	gsivi <- integrateTimeserie(ndvi.list1[[1]], start=greenup, end=senescence)
+	gsivi <- integrateTimeserie(ndvi.list1[[1]], start=greenup, end=senescence, n=1000)
 }

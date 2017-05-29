@@ -48,3 +48,4 @@ void swap(int first, int second, int *sorted){
 	sorted[second]=sorted[first];
 	sorted[first]=tmp; 
 }
+

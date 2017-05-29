@@ -4,7 +4,7 @@
 
 //rdate as YYMMDD
 //returns day of year
-int *date2doy(int *rdate, int *doy)
+int *dateToDoy(int *rdate, int *doy)
 {
 	int date = rdate[0];
 	int day = 0, month = 0, year = 0;
@@ -70,4 +70,5 @@ int getFullYear(int year){
 		return (year + 1900);
 	else
 		return (year + 2000);
-}	
+}
+

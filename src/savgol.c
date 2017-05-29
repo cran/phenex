@@ -112,3 +112,4 @@ double *savGol(int *rdays, double *ndvi, double *coef, int *numberofCoef, double
 
 	return corrected_ndvi;
 }
+

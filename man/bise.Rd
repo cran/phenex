@@ -1,10 +1,9 @@
-\name{bise2}
+\name{bise}
 \alias{bise}
-\alias{bise2}
 
-\title{Best index slope extraction 2}
+\title{Best index slope extraction}
 \description{Reduces noise in NDVI time-series. Second interpretation of bise algorithm.}
-\usage{bise2(x, slidingperiod, growthFactorThreshold, cycleValues)}
+\usage{bise(x, slidingperiod, growthFactorThreshold, cycleValues)}
 \arguments{
 	\item{x}{An object of class \sQuote{NDVI} containing raw NDVI values.}
 	\item{slidingperiod}{Sliding Period of the BISE-algorithm, default value is 40.}
@@ -20,7 +19,7 @@
 	study area but might have to be modified when study areas in different climates are 
 	investigated.}
 \value{An object of class \sQuote{NDVI} containing raw and corrected NDVI values.}
-\seealso{\code{\link{bise1}},,\code{\link{modelNDVI}}, \code{\linkS4class{NDVI}}}
+\seealso{\code{\link{modelNDVI}}, \code{\linkS4class{NDVI}}}
 \author{Daniel Doktor, Maximilian Lange}
 \references{
 Viovy, N., Arino, O. and Belward, A.S. (1992). The Best Index Slope Extraction (BISE) - a method for reducing noise in NDVI time-series. \emph{International Journal of Remote Sensing}, \bold{13}, 1585-1590.
@@ -33,7 +32,7 @@ Viovy, N., Arino, O. and Belward, A.S. (1992). The Best Index Slope Extraction (
 	ndvi <- new("NDVI", values=avhrr.ndvi/10000, year=as.integer(1995))
 
 	# correct values (bise)
-	ndvi.bise <- bise2(ndvi, slidingperiod=40, growthFactorThreshold=0.1)
+	ndvi.bise <- bise(ndvi, slidingperiod=40, growthFactorThreshold=0.1)
 
 	#plot
 	plot(ndvi.bise)

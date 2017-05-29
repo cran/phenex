@@ -15,7 +15,7 @@ function(ndvi){
 		
 			#calculate coefficients F and G
 			#F - Base, (G+F) Maximum
-			F <- mean(na.omit(res[1:(days/4)]))
+			F <- mean(na.omit(res[1:round(days/4,0)]))
 			#F <- 0.2
 			if (maxvalue > 0){
 				G <- maxvalue - F

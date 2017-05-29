@@ -16,3 +16,6 @@ double condition(double *ndvi, double *model, int length){
 	condition /= (double) count;
 	return(condition);
 }
+
+
+
